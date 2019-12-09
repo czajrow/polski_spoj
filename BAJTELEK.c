@@ -12,6 +12,7 @@ typedef struct Vector {
 int compute_drawing();
 void read_drawing(t_Vector *v);
 
+void add_to_vector(t_Vector *v, int value);
 void reuse_vector(t_Vector *v);
 void free_vector(t_Vector *v);
 t_Vector * make_vector();
@@ -47,15 +48,14 @@ int compute_drawing(t_Vector *v) {
 }
 
 void read_drawing(t_Vector *v) {
-	int var, count = 0;
+	int var;
 
 	while(scanf("%d",&var) != EOF) {
-		if (v->size == v->used) {
-			double_size(v);
-		}
-		v->v[count++] = var;
-		v->used++;
-		if (count > 2 && count % 2 == 0 && v->v[0] == v->v[count-2] && v->v[1] == v->v[count-1]) {
+
+		add_to_vector(v, var);
+		int used = v->used;
+
+		if (used > 2 && used % 2 == 0 && v->v[0] == v->v[used-2] && v->v[1] == v->v[used-1]) {
 			break;
 		}
 	}
@@ -69,6 +69,13 @@ void read_drawing(t_Vector *v) {
 /*
 	FUNCTIONS REGARDING VECTORS
 */
+
+void add_to_vector(t_Vector *v, int value) {
+	if (v->size == v->used) {
+		double_size(v);
+	}
+	v->v[v->used++] = value;
+}
 
 void reuse_vector(t_Vector *v) {
 	v->used = 0;
