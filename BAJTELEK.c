@@ -1,120 +1,122 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int INIT_SIZE = 4;
-const int BLACK_INK = 4; // 10, but i count gray area inside black as well
-const int GRAY_INK = 6;
+const int INITIAL_VECTOR_SIZE = 4;
 const int MIN_COORDINATE = -100001;
+const int BLACK_INK = 4;
+const int GRAY_INK = 6;
 
-typedef struct Vector {
-	int *ve;
-	int used;
-	int size;
-} t_Vector;
+typedef struct p {
+    int x;
+    int y;
+} pair_t;
 
-int compute_ink_in_polygon(t_Vector *v, int ink);
+typedef struct {
+    int size;  // capacity
+    int n;     // actual size
+    pair_t *d; // data
+} cont_t;
+
+// logics..
 int compute_drawing();
-void read_drawing(t_Vector *v);
+void read_line(cont_t *data);
+int count_ink(cont_t *data, int ink);
 
-void add_to_vector(t_Vector *v, int value);
-void reuse_vector(t_Vector *v);
-void free_vector(t_Vector *v);
-t_Vector * make_vector();
-void double_size(t_Vector *v);
+// structs...
+cont_t *init_cont( int );
+int cont_resize( cont_t * );
 
-int main(int argc, char **argv) {
+int main() {
 
-	int n;
-	scanf("%d", &n);
-	t_Vector *vec = make_vector();
+    int n;
+    scanf("%d", &n);
 
-	for (int drawing_num = 0; drawing_num < n; drawing_num++) {
+    for (int i = 0; i < n; i++) {
+        int result = compute_drawing();
+        printf("%d\n", result);
+    }
 
-		int result = compute_drawing(vec);
-		printf("%d\n", result);
-	}
-
-	free_vector(vec);
-	return 0;
+    return 0;
 }
 
-int compute_ink_in_polygon(t_Vector *v, int ink) {
-	int prevx = v->ve[0] - MIN_COORDINATE;
-	int prevy = v->ve[1] - MIN_COORDINATE;
+int compute_drawing() {
+    cont_t *black = init_cont( INITIAL_VECTOR_SIZE );
+    cont_t *gray = init_cont( INITIAL_VECTOR_SIZE );
 
-	int sum_ink = 0;
-	for (int i = 1; i < v->used / 2; i++) {
-		int x = v->ve[2 * i] - MIN_COORDINATE;
-		int y = v->ve[2 * i + 1] - MIN_COORDINATE;
+    read_line(black);
+    read_line(gray);
 
-		int dx = prevx - x;
+    // count_ink
+    int sum_ink;
+    sum_ink = count_ink(black, BLACK_INK);
+    sum_ink += count_ink(gray, GRAY_INK);
 
-		sum_ink += (( y + prevy ) * ink * dx ) / 2;
-
-		prevx = x;
-		prevy = y;
-	}
-	return sum_ink;
+    free(black->d);
+    free(black);
+    free(gray->d);
+    free(gray);
+    return sum_ink;
 }
 
-int compute_drawing(t_Vector *v) {
-	reuse_vector(v);
-	read_drawing(v);
+void read_line(cont_t *data) {
+    int x, y;
 
-	int sum_ink = compute_ink_in_polygon(v, BLACK_INK);
-
-	reuse_vector(v);
-	read_drawing(v);
-
-	sum_ink += compute_ink_in_polygon(v, GRAY_INK);
-
-	return sum_ink;
+    while(scanf( "%d%d", &x, &y ) != EOF) {
+        if( data->size == data->n && !cont_resize( data ) ) {
+            fprintf( stderr, "End of memory... Can't resize vector.\n" );
+            exit(EXIT_FAILURE);
+        }
+        data->d[data->n].x = x - MIN_COORDINATE;
+        data->d[data->n].y = y - MIN_COORDINATE;
+        data->n++;
+        if ( data->n > 1 && data->d[0].x == data->d[data->n - 1].x && data->d[0].y == data->d[data->n - 1].y) { break; }
+    }
 }
 
-void read_drawing(t_Vector *v) {
-	int var;
+int count_ink(cont_t *data, int ink) {
+    int prevx = data->d[0].x;
+    int prevy = data->d[0].y;
+    int sum_ink = 0;
 
-	while(scanf("%d",&var) != EOF) {
+    for (int i = 1; i < data->n; i++) {
+        int x = data->d[i].x;
+        int y = data->d[i].y;
 
-		add_to_vector(v, var);
-		int used = v->used;
+        int dx = prevx - x;
 
-		if (used > 2 && used % 2 == 0 && v->ve[0] == v->ve[used-2] && v->ve[1] == v->ve[used-1]) {
-			break;
-		}
-	}
+        sum_ink += (( y + prevy ) * ink * dx ) / 2;
+
+        prevx = x;
+        prevy = y;
+    }
+    return sum_ink;
 }
 
-/*
-	FUNCTIONS REGARDING VECTORS
-*/
+// vectors...
 
-void add_to_vector(t_Vector *v, int value) {
-	if (v->size == v->used) {
-		double_size(v);
-	}
-	v->ve[v->used++] = value;
+cont_t *init_cont(int initial_size) {
+    cont_t *c = malloc(sizeof *c);
+    if (c == NULL) {
+        return NULL;
+    }
+    (*c).d = malloc(initial_size * sizeof *(c->d));
+    if (c->d == NULL) {
+        free(c);
+        return NULL;
+    }
+    c->size = initial_size;
+    c->n = 0;
+    return c;
 }
 
-void reuse_vector(t_Vector *v) {
-	v->used = 0;
-}
-
-void free_vector(t_Vector *v) {
-	free(v->ve);
-	free(v);
-}
-
-t_Vector * make_vector() {
-	t_Vector *v = malloc(sizeof(t_Vector));
-	v->size = INIT_SIZE;
-	v->used = 0;
-	v->ve = malloc(v->size * sizeof(int));
-	return v;
-}
-
-void double_size(t_Vector *v) {
-	int size = v->size * 2;
-	v->size = size;
-	v->ve = realloc(v->ve, size);
+int cont_resize(cont_t *c) {
+    pair_t *nd = realloc(c->d, 2 * c->size * sizeof *nd);
+    if (nd == NULL) {
+        return 0;
+    }
+    else {
+        c->d = nd;
+        c->size *= 2;
+        return 1;
+    }
 }
