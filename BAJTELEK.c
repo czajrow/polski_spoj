@@ -1,3 +1,5 @@
+// https://pl.spoj.com/problems/BAJTELEK/
+
 #include <stdio.h>
 #include <stdlib.h>
 

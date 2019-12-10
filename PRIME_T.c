@@ -1,6 +1,6 @@
-#include <stdio.h>
-
 // https://pl.spoj.com/problems/PRIME_T/
+
+#include <stdio.h>
 
 int is_prime(int k);
 
