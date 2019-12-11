@@ -1,3 +1,5 @@
+// https://pl.spoj.com/problems/PRZEDSZK/
+
 #include <stdio.h>
 
 int nww( int a, int b );

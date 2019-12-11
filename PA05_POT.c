@@ -1,3 +1,5 @@
+// https://pl.spoj.com/problems/PA05_POT/
+
 #include <stdio.h>
 
 int power( int a, int b );
