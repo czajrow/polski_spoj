@@ -1,4 +1,4 @@
-*
-!.gitignore
-!C/
+/**
+!/.gitignore
 
+!/C/*.c
